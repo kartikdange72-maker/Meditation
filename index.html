@@ -1,231 +1,483 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Meditation Stopwatch</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Smart Stopwatch</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-<style>
-  body{
-    margin:0;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:#f5f7fa;
-    font-family:system-ui,sans-serif;
-  }
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card: #ffffff;
+      --text: #101828;
+      --muted: #667085;
+      --border: #e4e7ec;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --shadow: 0 20px 55px rgba(16, 24, 40, 0.12);
+      --radius: 28px;
+    }
 
-  .stopwatch-container{
-    width:360px;
-    background:white;
-    padding:30px;
-    border-radius:24px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.1);
-    text-align:center;
-  }
+    * { box-sizing: border-box; }
 
-  .display{
-    font-size:64px;
-    font-weight:800;
-    margin-bottom:20px;
-    font-variant-numeric: tabular-nums;
-  }
+    html, body { min-height: 100%; }
 
-  .button-container{
-    display:grid;
-    gap:10px;
-    grid-template-columns:1fr 1fr;
-  }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+    }
 
-  #start-button{
-    grid-column:1 / -1;
-  }
+    .app-shell {
+      width: min(100%, 460px);
+    }
 
-  .stats{
-    margin-top:20px;
-    font-size:18px;
-    color:#555;
-  }
-</style>
+    .stopwatch-container {
+      width: 100%;
+      padding: clamp(22px, 6vw, 34px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--primary);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 22px;
+      font-size: clamp(1.45rem, 6vw, 2rem);
+      font-weight: 850;
+      text-align: center;
+      letter-spacing: -0.04em;
+    }
+
+    .timer-card {
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: clamp(20px, 6vw, 30px) 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      text-align: center;
+    }
+
+    .display {
+      margin: 0;
+      color: var(--text);
+      font-size: clamp(3.25rem, 16vw, 5.25rem);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -0.07em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .status-text {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .stat-box {
+      padding: 14px 12px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #fff;
+      text-align: center;
+    }
+
+    .stat-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stat-value {
+      display: block;
+      margin-top: 4px;
+      font-size: 1.45rem;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .button-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .button-container .btn {
+      min-height: 52px;
+      border-radius: 16px;
+      font-weight: 800;
+      font-size: 1rem;
+      border: 0;
+      box-shadow: none !important;
+    }
+
+    #start-button {
+      grid-column: 1 / -1;
+      background: var(--primary);
+    }
+
+    #start-button:hover,
+    #start-button:focus {
+      background: var(--primary-dark);
+    }
+
+    #pause-button { background: var(--success); }
+
+    #reset-button { background: var(--danger); }
+
+    .options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 650;
+    }
+
+    .form-check-input {
+      width: 2.8em;
+      height: 1.45em;
+      cursor: pointer;
+    }
+
+    .form-check-input:checked {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .support-note {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-align: center;
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .button-container {
+        grid-template-columns: 1fr;
+      }
+
+      #start-button {
+        grid-column: auto;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <main class="app-shell">
+    <section class="stopwatch-container" aria-label="Smart stopwatch">
+      <p class="eyebrow">Empty yourself, let Krishna enters within you 💖</p>
+      <h1>Meditation</h1>
 
-<div class="stopwatch-container">
+      <div class="timer-card">
+        <h2 class="display" aria-live="polite">00:00</h2>
+        <p class="status-text" id="status-text">Ready to start</p>
+      </div>
 
-  <h2>Meditation Timer</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span class="stat-label">Minute count</span>
+          <span class="stat-value" id="counter">0</span>
+        </div>
 
-  <div class="display" id="display">00:00</div>
+        <div class="stat-box">
+          <span class="stat-label">State</span>
+          <span class="stat-value" id="state-text">Idle</span>
+        </div>
+      </div>
 
-  <div class="button-container">
-    <button id="start-button" class="btn btn-primary">Start</button>
-    <button id="pause-button" class="btn btn-success">Pause</button>
-    <button id="reset-button" class="btn btn-danger">Reset</button>
-  </div>
+      <div class="button-container">
+        <button id="start-button" class="btn btn-primary" type="button">Start</button>
+        <button id="pause-button" class="btn btn-secondary" type="button" disabled>Pause</button>
+        <button id="reset-button" class="btn btn-danger" type="button">Reset</button>
+      </div>
 
-  <div class="stats">
-    Voice Minute:
-    <span id="interval-counter">0</span>
-  </div>
+      <div class="options">
+        <span>Speak every full minute</span>
+        <div class="form-check form-switch m-0">
+          <input class="form-check-input" type="checkbox" role="switch" id="voice-toggle" checked />
+          <label class="visually-hidden" for="voice-toggle">Toggle voice announcements</label>
+        </div>
+      </div>
 
-</div>
+      <p class="support-note" id="wake-lock-note">
+        Screen stays awake while timer is running on supported browsers.
+      </p>
+    </section>
+  </main>
 
-<script>
+  <script>
+    let elapsedBeforeStart = 0;
+    let startTimestamp = null;
+    let intervalId = null;
+    let spokenCounter = 0;
+    let lastDisplayedSecond = -1;
+    let lastBellSecond = 0;
+    let wakeLock = null;
+    let audioContext = null;
 
-const display = document.getElementById("display");
-const startButton = document.getElementById("start-button");
-const pauseButton = document.getElementById("pause-button");
-const resetButton = document.getElementById("reset-button");
-const intervalCounterDisplay = document.getElementById("interval-counter");
+    const timeDisplay = document.querySelector('.display');
+    const intervalCounterDisplay = document.getElementById('counter');
+    const stateText = document.getElementById('state-text');
+    const statusText = document.getElementById('status-text');
+    const startButton = document.getElementById('start-button');
+    const pauseButton = document.getElementById('pause-button');
+    const resetButton = document.getElementById('reset-button');
+    const voiceToggle = document.getElementById('voice-toggle');
+    const wakeLockNote = document.getElementById('wake-lock-note');
 
-let timer = null;
-let elapsedSeconds = 0;
-let running = false;
+    const numberWords = {
+      1: 'one',
+      2: 'two',
+      3: 'three',
+      4: 'four',
+      5: 'five',
+      6: 'six',
+      7: 'seven',
+      8: 'eight',
+      9: 'nine',
+      10: 'ten',
+      11: 'eleven',
+      12: 'twelve',
+      13: 'thirteen',
+      14: 'fourteen',
+      15: 'fifteen',
+      16: 'sixteen',
+      17: 'seventeen',
+      18: 'eighteen',
+      19: 'nineteen',
+      20: 'twenty'
+    };
 
-let spokenCounter = 0;
-let lastBellSecond = 0;
-let audioContext = null;
+    function pad(value) {
+      return String(value).padStart(2, '0');
+    }
 
-const numberWords = {
-  1:"One",
-  2:"Two",
-  3:"Three",
-  4:"Four",
-  5:"Five",
-  6:"Six",
-  7:"Seven",
-  8:"Eight",
-  9:"Nine",
-  10:"Ten",
-  11:"Eleven",
-  12:"Twelve",
-  13:"Thirteen",
-  14:"Fourteen",
-  15:"Fifteen",
-  16:"Sixteen",
-  17:"Seventeen",
-  18:"Eighteen",
-  19:"Nineteen",
-  20:"Twenty"
-};
+    function getTotalElapsedSeconds() {
+      if (startTimestamp === null) return elapsedBeforeStart;
 
-function updateDisplay() {
-  const minutes = Math.floor(elapsedSeconds / 60);
-  const seconds = elapsedSeconds % 60;
+      const runningSeconds = Math.floor((performance.now() - startTimestamp) / 1000);
+      return elapsedBeforeStart + runningSeconds;
+    }
 
-  display.textContent =
-    String(minutes).padStart(2, "0") +
-    ":" +
-    String(seconds).padStart(2, "0");
-}
+    function updateDisplay(totalSeconds) {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
 
-function speakText(text) {
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 1;
-  utterance.pitch = 1;
-  utterance.volume = 1;
-  speechSynthesis.speak(utterance);
-}
+      timeDisplay.textContent = `${pad(minutes)}:${pad(seconds)}`;
+    }
 
-function playMeditationBell() {
+    function updateState(state, status) {
+      stateText.textContent = state;
+      statusText.textContent = status;
+    }
 
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
+    function speakText(text) {
+      if (!voiceToggle.checked || !('speechSynthesis' in window)) return;
 
-  if (!AudioContext) return;
+      window.speechSynthesis.cancel();
 
-  if (!audioContext) {
-    audioContext = new AudioContext();
-  }
+      const speech = new SpeechSynthesisUtterance(String(text));
+      speech.lang = 'en-US';
+      speech.volume = 1;
+      speech.rate = 0.85;
+      speech.pitch = 1;
 
-  const now = audioContext.currentTime;
+      window.speechSynthesis.speak(speech);
+    }
 
-  const oscillator = audioContext.createOscillator();
-  const gain = audioContext.createGain();
+    function playMeditationBell() {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
 
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(528, now);
+      if (!audioContext) {
+        audioContext = new AudioContext();
+      }
 
-  gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.exponentialRampToValueAtTime(0.7, now + 0.02);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+      const now = audioContext.currentTime;
 
-  oscillator.connect(gain);
-  gain.connect(audioContext.destination);
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
 
-  oscillator.start(now);
-  oscillator.stop(now + 3);
-}
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(528, now);
 
-function tick() {
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.7, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
 
-  elapsedSeconds++;
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
 
-  updateDisplay();
+      oscillator.start(now);
+      oscillator.stop(now + 3);
+    }
 
-  const minutes = Math.floor(elapsedSeconds / 60);
-  const seconds = elapsedSeconds % 60;
+    async function keepScreenOn() {
+      if (!('wakeLock' in navigator)) {
+        wakeLockNote.textContent = 'Screen wake lock is not supported on this browser.';
+        return;
+      }
 
-  // Meditation bell every 30 seconds
-  if (
-    elapsedSeconds > 0 &&
-    elapsedSeconds % 30 === 0 &&
-    elapsedSeconds !== lastBellSecond
-  ) {
-    lastBellSecond = elapsedSeconds;
-    playMeditationBell();
-  }
+      if (wakeLock !== null) return;
 
-  // Voice every minute
-  if (
-    seconds === 0 &&
-    minutes > 0 &&
-    minutes > spokenCounter
-  ) {
-    spokenCounter = minutes;
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLockNote.textContent = 'Screen wake lock is active while timer runs.';
 
-    intervalCounterDisplay.textContent = spokenCounter;
+        wakeLock.addEventListener('release', () => {
+          wakeLock = null;
+          wakeLockNote.textContent = 'Screen wake lock was released by the browser.';
+        });
+      } catch (error) {
+        wakeLock = null;
+        wakeLockNote.textContent = 'Screen wake lock needs HTTPS and browser support.';
+        console.error('Wake Lock failed:', error);
+      }
+    }
 
-    speakText(numberWords[spokenCounter] || String(spokenCounter));
-  }
-}
+    async function releaseScreenLock() {
+      if (wakeLock === null) return;
 
-startButton.addEventListener("click", () => {
+      try {
+        await wakeLock.release();
+      } catch (error) {
+        console.error('Wake lock release failed:', error);
+      } finally {
+        wakeLock = null;
+        wakeLockNote.textContent = 'Screen stays awake while timer is running on supported browsers.';
+      }
+    }
 
-  if (running) return;
+    function tick() {
+      const totalSeconds = getTotalElapsedSeconds();
 
-  running = true;
+      if (totalSeconds === lastDisplayedSecond) return;
 
-  timer = setInterval(tick, 1000);
-});
+      lastDisplayedSecond = totalSeconds;
+      updateDisplay(totalSeconds);
 
-pauseButton.addEventListener("click", () => {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
 
-  running = false;
+      if (
+        totalSeconds > 0 &&
+        totalSeconds % 30 === 0 &&
+        totalSeconds !== lastBellSecond
+      ) {
+        lastBellSecond = totalSeconds;
+        playMeditationBell();
+      }
 
-  clearInterval(timer);
-});
+      if (seconds === 0 && minutes > 0 && minutes > spokenCounter) {
+        spokenCounter = minutes;
+        intervalCounterDisplay.textContent = spokenCounter;
+        speakText(numberWords[spokenCounter] || String(spokenCounter));
+      }
+    }
 
-resetButton.addEventListener("click", () => {
+    startButton.addEventListener('click', async () => {
+      if (intervalId) return;
 
-  running = false;
+      await keepScreenOn();
 
-  clearInterval(timer);
+      startTimestamp = performance.now();
+      intervalId = setInterval(tick, 100);
+      tick();
 
-  elapsedSeconds = 0;
-  spokenCounter = 0;
-  lastBellSecond = 0;
+      startButton.disabled = true;
+      pauseButton.disabled = false;
+      updateState('Running', 'Timer is running');
+    });
 
-  intervalCounterDisplay.textContent = "0";
+    pauseButton.addEventListener('click', async () => {
+      if (!intervalId) return;
 
-  updateDisplay();
-});
+      elapsedBeforeStart = getTotalElapsedSeconds();
+      clearInterval(intervalId);
 
-updateDisplay();
+      intervalId = null;
+      startTimestamp = null;
 
-</script>
+      await releaseScreenLock();
 
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+
+      startButton.disabled = false;
+      pauseButton.disabled = true;
+      updateState('Paused', 'Timer is paused');
+    });
+
+    resetButton.addEventListener('click', async () => {
+      clearInterval(intervalId);
+
+      intervalId = null;
+      elapsedBeforeStart = 0;
+      startTimestamp = null;
+      spokenCounter = 0;
+      lastDisplayedSecond = -1;
+      lastBellSecond = 0;
+
+      await releaseScreenLock();
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+
+      updateDisplay(0);
+      intervalCounterDisplay.textContent = '0';
+      startButton.disabled = false;
+      pauseButton.disabled = true;
+      updateState('Idle', 'Ready to start');
+    });
+
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible' && intervalId) {
+        await keepScreenOn();
+      }
+    });
+  </script>
 </body>
 </html>
